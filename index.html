@@ -3,74 +3,80 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f5c4d">
+  <meta name="theme-color" content="#F7F6F3">
   <title>KAM Tracking Bali Nusra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif&display=swap">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo">KAM</span>
-      <div>
-        <h1>KAM Tracking</h1>
-        <p>Bali Nusra</p>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <!-- ===== Login ===== -->
+  <section id="login" class="login" hidden>
+    <div class="login-card reveal">
+      <span class="mark">K</span>
+      <p class="eyebrow">Bali Nusra</p>
+      <h1 class="login-title">KAM Tracking</h1>
+      <p class="muted">Catat kunjungan outlet dengan lokasi dan foto. Data tersimpan di Google Sheets dan Drive milik akun kamu sendiri.</p>
+      <button id="loginBtn" class="btn primary block" disabled>
+        <svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.6 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.9l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>
+        <span id="loginLabel">Masuk dengan Google</span>
+      </button>
+      <p class="login-foot mono">Akses terbatas: hanya file buatan aplikasi ini</p>
+    </div>
+  </section>
+
+  <!-- ===== Aplikasi ===== -->
+  <div id="app" class="app" hidden>
+    <header class="topbar">
+      <button class="btn ghost icon-only" id="menuBtn" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">
+        <i class="ph-bold ph-list" aria-hidden="true"></i>
+      </button>
+      <span class="topbar-title">KAM Tracking</span>
+      <img class="avatar" id="topAvatar" alt="" referrerpolicy="no-referrer">
+    </header>
+
+    <div class="scrim" id="scrim"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="side-brand">
+        <span class="mark sm">K</span>
+        <div>
+          <p class="side-name">KAM Tracking</p>
+          <p class="side-sub mono">Bali Nusra</p>
+        </div>
       </div>
-    </div>
-    <div id="userBox" class="user hidden">
-      <img id="userPic" alt="">
-      <button id="logoutBtn" class="link">Keluar</button>
-    </div>
-  </header>
-
-  <main>
-    <!-- Layar login -->
-    <section id="loginView" class="card center">
-      <h2>Masuk dulu</h2>
-      <p class="muted">Data dan foto akan tersimpan di Google Drive & Sheets akun Google kamu sendiri.</p>
-      <button id="loginBtn" class="btn primary" disabled>Masuk dengan Google</button>
-    </section>
-
-    <!-- Form input -->
-    <section id="formView" class="hidden">
-      <p class="hello">Halo, <strong id="userName"></strong></p>
-
-      <form id="entryForm" class="card" novalidate>
-        <div class="field">
-          <label>Lokasi</label>
-          <div class="geo">
-            <div id="geoStatus" class="geo-status">Mengambil lokasi…</div>
-            <button type="button" id="geoBtn" class="btn small">Perbarui</button>
-          </div>
-          <a id="geoMap" class="muted small hidden" target="_blank" rel="noopener">Lihat di Google Maps</a>
+      <nav class="nav" aria-label="Menu utama">
+        <a href="#/dashboard" data-nav="dashboard"><i class="ph-bold ph-squares-four" aria-hidden="true"></i>Dashboard</a>
+        <a href="#/input" data-nav="input"><i class="ph-bold ph-plus-square" aria-hidden="true"></i>Input</a>
+      </nav>
+      <div class="side-links" id="sideLinks" hidden>
+        <p class="side-label mono">Penyimpanan</p>
+        <a id="sheetLink" target="_blank" rel="noopener"><i class="ph-bold ph-table" aria-hidden="true"></i>Google Sheets<i class="ph-bold ph-arrow-up-right ext" aria-hidden="true"></i></a>
+        <a id="folderLink" target="_blank" rel="noopener"><i class="ph-bold ph-folder-simple" aria-hidden="true"></i>Folder Drive<i class="ph-bold ph-arrow-up-right ext" aria-hidden="true"></i></a>
+      </div>
+      <div class="side-user">
+        <img class="avatar" id="sideAvatar" alt="" referrerpolicy="no-referrer">
+        <div class="side-user-text">
+          <p class="side-user-name" id="userName"></p>
+          <p class="side-user-mail mono" id="userMail"></p>
         </div>
+        <button class="btn ghost sm icon-only" id="logoutBtn" aria-label="Keluar" title="Keluar"><i class="ph-bold ph-sign-out" aria-hidden="true"></i></button>
+      </div>
+    </aside>
 
-        <div class="field">
-          <label for="photoInput">Foto</label>
-          <label class="photo-drop" for="photoInput">
-            <img id="photoPreview" class="hidden" alt="Pratinjau foto">
-            <span id="photoHint">Ketuk untuk ambil foto</span>
-          </label>
-          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
-        </div>
+    <main class="main"><div class="view" id="view"></div></main>
+  </div>
 
-        <div class="field">
-          <label for="notes">Catatan</label>
-          <textarea id="notes" rows="3" placeholder="Tulis catatan…"></textarea>
-        </div>
+  <dialog id="detail" class="dialog"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-        <button type="submit" id="submitBtn" class="btn primary block">Simpan</button>
-        <p id="formMsg" class="msg" role="status"></p>
-      </form>
-
-      <p class="links">
-        <a id="sheetLink" target="_blank" rel="noopener" class="hidden">Buka Google Sheets</a>
-        <a id="folderLink" target="_blank" rel="noopener" class="hidden">Buka folder foto</a>
-      </p>
-    </section>
-  </main>
-
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
