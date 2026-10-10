@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5c4d">
+  <title>KAM Tracking Bali Nusra</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">KAM</span>
+      <div>
+        <h1>KAM Tracking</h1>
+        <p>Bali Nusra</p>
+      </div>
+    </div>
+    <div id="userBox" class="user hidden">
+      <img id="userPic" alt="">
+      <button id="logoutBtn" class="link">Keluar</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Layar login -->
+    <section id="loginView" class="card center">
+      <h2>Masuk dulu</h2>
+      <p class="muted">Data dan foto akan tersimpan di Google Drive & Sheets akun Google kamu sendiri.</p>
+      <button id="loginBtn" class="btn primary" disabled>Masuk dengan Google</button>
+    </section>
+
+    <!-- Form input -->
+    <section id="formView" class="hidden">
+      <p class="hello">Halo, <strong id="userName"></strong></p>
+
+      <form id="entryForm" class="card" novalidate>
+        <div class="field">
+          <label>Lokasi</label>
+          <div class="geo">
+            <div id="geoStatus" class="geo-status">Mengambil lokasi…</div>
+            <button type="button" id="geoBtn" class="btn small">Perbarui</button>
+          </div>
+          <a id="geoMap" class="muted small hidden" target="_blank" rel="noopener">Lihat di Google Maps</a>
+        </div>
+
+        <div class="field">
+          <label for="photoInput">Foto</label>
+          <label class="photo-drop" for="photoInput">
+            <img id="photoPreview" class="hidden" alt="Pratinjau foto">
+            <span id="photoHint">Ketuk untuk ambil foto</span>
+          </label>
+          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
+        </div>
+
+        <div class="field">
+          <label for="notes">Catatan</label>
+          <textarea id="notes" rows="3" placeholder="Tulis catatan…"></textarea>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn primary block">Simpan</button>
+        <p id="formMsg" class="msg" role="status"></p>
+      </form>
+
+      <p class="links">
+        <a id="sheetLink" target="_blank" rel="noopener" class="hidden">Buka Google Sheets</a>
+        <a id="folderLink" target="_blank" rel="noopener" class="hidden">Buka folder foto</a>
+      </p>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
