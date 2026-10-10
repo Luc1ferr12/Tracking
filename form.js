@@ -76,6 +76,7 @@ export function renderForm(view, catId, edit = null) {
   bindNumberInputs(form);
   bindPhotos(form, state);
   if (edit) prefill(form, cat, state);
+  bindDates(form);
   bindGeo(form, state, !edit);
   form.addEventListener('submit', (e) => { e.preventDefault(); submit(form, cat, state); });
 }
@@ -153,14 +154,22 @@ function fieldHtml(cat, k) {
       return `<div class="field">${lab}<input class="input" id="${id}" name="${k}" type="tel" inputmode="tel" autocomplete="off" placeholder="08xx" ${R}>${err}</div>`;
     case 'textarea':
       return `<div class="field full">${lab}<textarea class="input" id="${id}" name="${k}" rows="3" ${R}></textarea>${err}</div>`;
-    case 'number':
-      return `<div class="field">${lab}<input class="input mono-num" id="${id}" name="${k}" type="text" inputmode="numeric" data-num="int" autocomplete="off">${err}</div>`;
+    case 'number': {
+      const input = `<input class="input mono-num" id="${id}" name="${k}" type="text" inputmode="numeric" data-num="int" autocomplete="off">`;
+      return `<div class="field">${lab}${f.unit ? `<div class="affix">${input}<span class="affix-r">${esc(f.unit)}</span></div>` : input}${err}</div>`;
+    }
     case 'currency':
       return `<div class="field">${lab}<div class="affix"><span class="affix-l">Rp</span><input class="input mono-num" id="${id}" name="${k}" type="text" inputmode="numeric" data-num="int" autocomplete="off"></div>${err}</div>`;
     case 'percent':
       return `<div class="field">${lab}<div class="affix"><input class="input mono-num" id="${id}" name="${k}" type="text" inputmode="decimal" data-num="pct" autocomplete="off"><span class="affix-r">%</span></div>${err}</div>`;
     case 'date':
-      return `<div class="field">${lab}<input class="input" id="${id}" name="${k}" type="date">${err}</div>`;
+      // Input tanggal asli dibuat transparan di atas tombol → ketuk = kalender HP terbuka
+      return `<div class="field full"><span class="label">${label}${req}</span>
+        <div class="date-pick">
+          <span class="date-face">${icon('calendar-blank')}<span class="date-text">Pilih tanggal</span></span>
+          <input id="${id}" name="${k}" type="date" aria-label="${label}">
+          <button type="button" class="date-clear" data-date-clear aria-label="Hapus tanggal" hidden>${icon('x')}</button>
+        </div>${err}</div>`;
     case 'yn':
       return `<div class="field"><span class="label" id="${id}">${label}${req}</span>
         <div class="seg" role="radiogroup" aria-labelledby="${id}">
@@ -196,6 +205,28 @@ function fieldHtml(cat, k) {
         </div>${err}</div>`;
   }
   return '';
+}
+
+// ===== Tanggal: tampilkan sebagai tombol pilihan tanggal =====
+function bindDates(form) {
+  form.querySelectorAll('.date-pick').forEach((box) => {
+    const input = box.querySelector('input[type=date]');
+    const text = box.querySelector('.date-text');
+    const clear = box.querySelector('[data-date-clear]');
+    const sync = () => {
+      const has = !!input.value;
+      text.textContent = has
+        ? new Date(input.value + 'T00:00:00Z').toLocaleDateString('id-ID', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })
+        : 'Pilih tanggal';
+      box.classList.toggle('has-value', has);
+      clear.hidden = !has;
+    };
+    input.addEventListener('change', sync);
+    input.addEventListener('input', sync);
+    input.addEventListener('click', () => { try { input.showPicker?.(); } catch {} });
+    clear.addEventListener('click', () => { input.value = ''; sync(); });
+    sync();
+  });
 }
 
 // ===== Angka: format ribuan saat mengetik =====

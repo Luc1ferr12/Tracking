@@ -98,7 +98,7 @@ function draw(view) {
     <section class="kpis">
       ${kpi('Total kunjungan', fmtInt(rs.length), `${CATEGORIES.filter((c) => by[c.id].length).length} dari 4 jenis outlet`, 0)}
       ${kpi('Volume Isat / bulan', fmtShort(sum([...by.ws, ...by.ml, ...by.kro], 'volIsat')), 'WS, Server, KRO', 1)}
-      ${kpi('Nominal dealing', 'Rp ' + fmtShort(sum(dealRs, 'nominalDealing')), 'WS dan Server', 2)}
+      ${kpi('Nominal dealing', fmtShort(sum(dealRs, 'nominalDealing')) + '<small>pcs</small>', 'WS dan Server', 2)}
       ${kpi('Rata-rata final discount', disc === null ? '-' : fmtNum(disc) + '%', 'WS dan Server', 3)}
     </section>
 
@@ -106,7 +106,7 @@ function draw(view) {
       ${catCard('ws', by.ws, [
         rateRow('Dealing Boss', yes(by.ws, 'dealingBoss'), 'blue'),
         statRow('Volume Isat', fmtInt(sum(by.ws, 'volIsat'))),
-        statRow('Nominal dealing', 'Rp ' + fmtInt(sum(by.ws, 'nominalDealing'))),
+        statRow('Nominal dealing', fmtInt(sum(by.ws, 'nominalDealing')) + ' pcs'),
       ])}
       ${catCard('ml', by.ml, [
         rateRow('Deal', yes(by.ml, 'deal'), 'green'),
@@ -256,7 +256,7 @@ function openDetail(r) {
     if (!has(v)) return '<span class="muted">-</span>';
     if (f?.type === 'photo') return `<a class="btn ghost sm" href="${esc(v)}" target="_blank" rel="noopener">${icon('image')} Lihat foto</a>`;
     if (f?.type === 'currency') return 'Rp ' + fmtInt(num(v));
-    if (f?.type === 'number') return fmtInt(num(v));
+    if (f?.type === 'number') return fmtInt(num(v)) + (f.unit ? ' ' + f.unit : '');
     if (f?.type === 'percent') return fmtNum(num(v), 2) + '%';
     if (f?.type === 'date') return fmtDate(fromSerial(v), false);
     if (f?.type === 'tel') return `<a href="tel:${esc(v)}">${esc(v)}</a>`;

@@ -33,7 +33,7 @@ export const FIELDS = {
   deal:           { type: 'yn', label: 'Deal' },
   targetProgram:  { type: 'yn', label: 'Target Program' },
   dealingSp:      { type: 'text', label: 'Dealing SP' },
-  nominalDealing: { type: 'currency', label: 'Nominal Dealing' },
+  nominalDealing: { type: 'number', unit: 'pcs', label: 'Nominal Dealing' },
   finalDisc:      { type: 'percent', label: 'Final Discount Given (%)' },
   tglSp:          { type: 'date', label: 'Tanggal SP Diberikan' },
   fotoEtalase:    { type: 'photo', label: 'Foto Etalase' },
