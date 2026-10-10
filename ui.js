@@ -16,6 +16,19 @@ export function fmtShort(n) {
   return fmtInt(Math.round(n));
 }
 
+// Waktu disimpan sebagai jam lokal (WITA). Tanggal dari Sheets (serial number)
+// diubah ke Date "jam dinding" dalam UTC, jadi tampilkan selalu dengan timeZone UTC.
+export function fromSerial(v) {
+  if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400000));
+  if (typeof v === 'string' && v) {
+    const t = Date.parse(v.replace(' ', 'T') + (v.length > 10 ? 'Z' : 'T00:00:00Z'));
+    return isNaN(t) ? null : new Date(t);
+  }
+  return null;
+}
+// Date "jam dinding" → "2026-10-10 14:30:00"
+export const wallStamp = (d) => d.toISOString().slice(0, 19).replace('T', ' ');
+
 let toastTimer;
 export function toast(msg, kind = 'ok') {
   const el = document.getElementById('toast');

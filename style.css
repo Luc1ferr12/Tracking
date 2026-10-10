@@ -452,7 +452,7 @@ input[type=date].input { appearance: none; -webkit-appearance: none; }
 }
 .dlg-title { margin: 10px 0 2px; font: 400 30px/1.1 var(--serif); letter-spacing: -0.02em; color: var(--ink); }
 .dlg-head p { margin: 0; }
-.dlg-head .btn { flex: none; align-self: flex-start; }
+.dlg-actions { flex: none; align-self: flex-start; display: flex; gap: 4px; }
 .dlg-list { margin: 0; padding: 4px 20px 20px; }
 .dlg-list > div { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .dlg-list > div:last-child { border-bottom: 0; }

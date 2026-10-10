@@ -51,7 +51,7 @@ const headerRow = (cat) => ({
 
 async function createSpreadsheet() {
   const body = {
-    properties: { title: CONFIG.SHEET_NAME, locale: 'id_ID', timeZone: CONFIG.TIME_ZONE },
+    properties: { title: CONFIG.SHEET_NAME, timeZone: CONFIG.TIME_ZONE },
     sheets: CATEGORIES.map((cat) => ({
       properties: { title: cat.title, gridProperties: { frozenRowCount: 1 } },
       data: [{ startRow: 0, startColumn: 0, rowData: [headerRow(cat)] }],
@@ -114,24 +114,53 @@ export function resetStorage() {
 }
 
 export async function uploadPhoto(blob, folderId, name) {
+  const mimeType = blob.type || 'image/jpeg';
   const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify({ name, parents: [folderId], mimeType: 'image/jpeg' })], { type: 'application/json' }));
+  form.append('metadata', new Blob([JSON.stringify({ name, parents: [folderId], mimeType })], { type: 'application/json' }));
   form.append('file', blob);
   return (await api(`${UPLOAD}?uploadType=multipart&fields=id,webViewLink`, { method: 'POST', body: form })).json();
 }
 
+// Tambah baris baru, kembalikan nomor baris di Sheets
 export async function appendRow(sheetId, tab, row) {
   const range = encodeURIComponent(`'${tab}'!A1`);
-  await api(`${SHEETS}/${sheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
+  const res = await api(`${SHEETS}/${sheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
     method: 'POST',
     ...json({ values: [row] }),
   });
+  const updated = (await res.json()).updates?.updatedRange || '';
+  return Number(updated.match(/!A(\d+)/)?.[1]) || null;
+}
+
+const READ_OPTS = 'valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER';
+
+// Baca 1 baris (untuk edit)
+export async function fetchRow(sheetId, tab, rowNum) {
+  const range = encodeURIComponent(`'${tab}'!A${rowNum}:ZZ${rowNum}`);
+  const res = await api(`${SHEETS}/${sheetId}/values/${range}?${READ_OPTS}`);
+  return (await res.json()).values?.[0] || null;
+}
+
+// Timpa 1 baris (hasil edit)
+export async function updateRow(sheetId, tab, rowNum, row) {
+  const range = encodeURIComponent(`'${tab}'!A${rowNum}`);
+  await api(`${SHEETS}/${sheetId}/values/${range}?valueInputOption=USER_ENTERED`, {
+    method: 'PUT',
+    ...json({ values: [row] }),
+  });
+}
+
+// Ambil isi foto dari Drive (untuk pratinjau saat edit)
+export async function fetchPhoto(link) {
+  const id = String(link).match(/\/d\/([^/]+)/)?.[1];
+  if (!id) return null;
+  return (await api(`${DRIVE}/${id}?alt=media`)).blob();
 }
 
 // Baca semua tab sekaligus. Tanggal dikembalikan sebagai serial number Sheets.
 export async function readAll(sheetId) {
   const ranges = CATEGORIES.map((c) => 'ranges=' + encodeURIComponent(`'${c.title}'!A2:ZZ`)).join('&');
-  const res = await api(`${SHEETS}/${sheetId}/values:batchGet?${ranges}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`);
+  const res = await api(`${SHEETS}/${sheetId}/values:batchGet?${ranges}&${READ_OPTS}`);
   const { valueRanges } = await res.json();
   return Object.fromEntries(CATEGORIES.map((c, i) => [c.id, valueRanges[i]?.values || []]));
 }

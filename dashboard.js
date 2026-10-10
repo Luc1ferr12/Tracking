@@ -1,7 +1,7 @@
 // Halaman Dashboard: ringkasan dari 4 tab Google Sheets
 import { CATEGORIES, FIELDS, catById, columns, labelOf } from './config.js';
 import { ensureStorage, readAll } from './google.js';
-import { esc, icon, fmtInt, fmtNum, fmtShort, toast } from './ui.js';
+import { esc, icon, fmtInt, fmtNum, fmtShort, toast, fromSerial } from './ui.js';
 
 const PERIODS = [
   { id: 'all', label: 'Semua' },
@@ -16,15 +16,7 @@ let listCat = 'all';
 let listLimit = 20;
 let map = null;
 
-// Waktu disimpan sebagai jam lokal (WITA). Semua hitungan tanggal pakai "jam dinding" dalam UTC.
-const fromSerial = (v) => {
-  if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400000));
-  if (typeof v === 'string' && v) {
-    const t = Date.parse(v.replace(' ', 'T') + 'Z');
-    return isNaN(t) ? null : new Date(t);
-  }
-  return null;
-};
+// Semua hitungan tanggal pakai "jam dinding" dalam UTC (lihat fromSerial)
 const nowWall = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
 const fmtDate = (d, withTime = true) => d ? d.toLocaleString('id-ID', {
   timeZone: 'UTC', day: '2-digit', month: 'short', year: 'numeric',
@@ -64,14 +56,14 @@ async function load(view) {
     records = [];
     for (const cat of CATEGORIES) {
       const cols = columns(cat);
-      for (const row of raw[cat.id]) {
-        if (!row.length) continue;
-        const r = { cat, v: {} };
+      raw[cat.id].forEach((row, idx) => {
+        if (!row.length) return;
+        const r = { cat, v: {}, row: idx + 2 }; // baris 1 = header
         cols.forEach((c, i) => { r.v[c.key] = row[i] ?? ''; });
         r.time = fromSerial(r.v._time);
         r.lat = Number(r.v.lat); r.lng = Number(r.v.lng);
         records.push(r);
-      }
+      });
     }
     records.sort((a, b) => (b.time || 0) - (a.time || 0));
     draw(view);
@@ -277,12 +269,15 @@ function openDetail(r) {
         <h2 class="dlg-title">${esc(r.v.nama || '(tanpa nama)')}</h2>
         <p class="muted small mono">${fmtDate(r.time)} · ${esc(r.v._email)}</p>
       </div>
-      <button type="button" class="btn ghost sm icon-only" data-close aria-label="Tutup">${icon('x')}</button>
+      <div class="dlg-actions">
+        <a class="btn ghost sm" href="#/edit/${r.cat.id}/${r.row}" data-close>${icon('pencil-simple')} Edit</a>
+        <button type="button" class="btn ghost sm icon-only" data-close aria-label="Tutup">${icon('x')}</button>
+      </div>
     </div>
     <dl class="dlg-list">
       ${cols.map((c) => `<div><dt>${esc(c.label)}</dt><dd>${val(c)}</dd></div>`).join('')}
     </dl>`;
-  dlg.querySelector('[data-close]').addEventListener('click', () => dlg.close());
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); }, { once: true });
   if (typeof dlg.showModal === 'function') dlg.showModal();
   else toast('Browser tidak mendukung detail', 'err');

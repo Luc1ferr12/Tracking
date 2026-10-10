@@ -2,7 +2,7 @@
 import { initAuth, restoreSession, getToken, setUser, signOut, lastEmail } from './auth.js';
 import { api, ensureStorage } from './google.js';
 import { renderDashboard } from './dashboard.js';
-import { renderPicker, renderForm } from './form.js';
+import { renderPicker, renderForm, renderEdit } from './form.js';
 import { toast } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
@@ -65,19 +65,21 @@ $('menuBtn').addEventListener('click', () => setMenu(!document.body.classList.co
 $('scrim').addEventListener('click', () => setMenu(false));
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 
-// ===== Routing: #/dashboard, #/input, #/input/<kategori> =====
+// ===== Routing: #/dashboard, #/input, #/input/<kategori>, #/edit/<kategori>/<baris> =====
 function route() {
   if ($('app').hidden) return;
   const [path] = location.hash.replace(/^#\/?/, '').split('?');
-  const [page, sub] = path.split('/');
+  const [page, sub, row] = path.split('/');
   const view = $('view');
   setMenu(false);
   document.querySelectorAll('[data-nav]').forEach((a) => {
-    a.classList.toggle('active', a.dataset.nav === (page || 'dashboard'));
+    a.classList.toggle('active', a.dataset.nav === (page === 'edit' ? 'dashboard' : page || 'dashboard'));
   });
   window.scrollTo({ top: 0 });
 
-  if (page === 'input') {
+  if (page === 'edit') {
+    renderEdit(view, sub, row);
+  } else if (page === 'input') {
     sub ? renderForm(view, sub) : renderPicker(view);
   } else {
     if (page !== 'dashboard') history.replaceState(null, '', '#/dashboard');
